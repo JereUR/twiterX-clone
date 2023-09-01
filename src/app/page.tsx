@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { AuthButtonServer } from './components/auth-button-server'
+import PostCard from './components/post-card'
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies })
@@ -16,12 +17,29 @@ export default async function Home() {
 
   const { data: posts } = await supabase
     .from('posts')
-    .select('*, users(name,user_name,avatar_url)')
+    .select('*, user:users(name,user_name,avatar_url)')
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <AuthButtonServer />
-      <pre>{JSON.stringify(posts, null, 2)}</pre>
+      {posts?.map((post) => {
+        const { user, content, id } = post
+
+        const {
+          avatar_url: avatarUrl,
+          name: userFullName,
+          user_name: userName
+        } = user
+        return (
+          <PostCard
+            avatarUrl={avatarUrl}
+            content={content}
+            key={id}
+            userFullName={userFullName}
+            userName={userName}
+          />
+        )
+      })}
     </main>
   )
 }

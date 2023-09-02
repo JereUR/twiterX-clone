@@ -3,10 +3,12 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { AuthButtonServer } from './components/auth-button-server'
-import PostCard from './components/post-card'
+import { PostsList } from './components/posts-list'
+import { Database } from './types/database'
+import { ComposePost } from './components/compose-post'
 
 export default async function Home() {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createServerComponentClient<Database>({ cookies })
   const {
     data: { session }
   } = await supabase.auth.getSession()
@@ -20,26 +22,12 @@ export default async function Home() {
     .select('*, user:users(name,user_name,avatar_url)')
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="flex min-h-screen flex-col items-center justify-between">
+      <section className="max-w-[600px] w-full mx-auto border-l border-r border-white/30 min-h-screen">
+        <ComposePost userAvatarUrl={session.user?.user_metadata?.avatar_url} />
+        <PostsList posts={posts} />
+      </section>
       <AuthButtonServer />
-      {posts?.map((post) => {
-        const { user, content, id } = post
-
-        const {
-          avatar_url: avatarUrl,
-          name: userFullName,
-          user_name: userName
-        } = user
-        return (
-          <PostCard
-            avatarUrl={avatarUrl}
-            content={content}
-            key={id}
-            userFullName={userFullName}
-            userName={userName}
-          />
-        )
-      })}
     </main>
   )
 }
